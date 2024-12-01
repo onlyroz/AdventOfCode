@@ -4,3 +4,4 @@ node_modules/
 # Production build files
 dist/
 build/
+files/
