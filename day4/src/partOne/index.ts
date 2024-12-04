@@ -3,7 +3,6 @@ import { shout } from "../utils";
 export const partOneShout = async (input = [] as string[]) => {
   shout("Hello from Part One");
 
-
   const process = (row: number, col: number, grid: string[][]) => {
     const xmas = ['X', 'M', 'A', 'S'];
     if (grid[row][col] !== 'X') return 0;
