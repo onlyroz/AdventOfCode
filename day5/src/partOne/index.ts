@@ -24,15 +24,18 @@ export const partOneShout = async (input = [] as string[]) => {
     }
   });
 
-  const sum = updates.reduce((acc, update) => {
-    const isValid = update.every((num, idx, self) => {
+  const isUpdateValid = (update: number[]) => {
+    return update.every((num, idx, self) => {
       const tail = self.slice(idx + 1);
-
       const invalid = tail.some(tailNum => 
         rules.some(rule => num === rule.right && tailNum === rule.left)
       );
       return !invalid;
     });
+  };
+
+  const sum = updates.reduce((acc, update) => {
+    const isValid = isUpdateValid(update);
 
     return acc + (isValid ? update[Math.round((update.length-1) / 2)] : 0);
   }, 0);
