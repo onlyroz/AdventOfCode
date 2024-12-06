@@ -61,4 +61,5 @@ export const partOneShout = async (input = [] as string[]) => {
   }
 
   shout(`Visited: ${guard.visited.size}`);
+  console.log(grid.map((row) => row.join('')).join('\n'));
 };
