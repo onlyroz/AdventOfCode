@@ -2,6 +2,7 @@ import { shout } from "../utils";
 
 export const partOneShout = async (input = [] as string[]) => {
   shout("Hello from Part One");
+  const startTime = performance.now();
 
   const visualGrid = input.map(row => [...row]);
 
@@ -60,6 +61,9 @@ export const partOneShout = async (input = [] as string[]) => {
   }
   
   visualGrid.forEach(row => console.log(row.join('')));
+
+  const endTime = performance.now();
+  shout(`Time taken: ${((endTime - startTime)/1000).toFixed(3)} s`);
 
   shout(`Total unique anti-node locations: ${uniqueAntiNodes.size}`)
 }; 
