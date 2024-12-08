@@ -6,32 +6,28 @@ export const partOneShout = async (input = [] as string[]) => {
 
   const visualGrid = input.map(row => [...row]);
 
-  type NodeItem = {
-    nodeLocations: {row: number, col: number}[],
-    antiNodeLocations: {row: number, col: number}[]
+  type NodeLocation = {
+    row: number, 
+    col: number,
   }
-  const nodeMap = input.reduce((acc, curr, y) => {
-    [...curr].forEach((cell, x) => {
+
+  const nodeMap = input.reduce((acc, curr, j) => {
+    [...curr].forEach((cell, i) => {
       if (cell !== '.') {
-        acc[cell] = acc[cell] ?? {
-          nodeLocations: [], 
-          antiNodeLocations: []
-        };
-        acc[cell].nodeLocations.push({row: x, col: y});
+        acc[cell] = acc[cell] ?? [];
+        acc[cell].push({row: i, col: j});
       }
     });
     return acc;
-  }, {} as {[key: string]: NodeItem});
+  }, {} as {[key: string]: NodeLocation[]});
 
   const gridWidth = input[0].length;
   const gridHeight = input.length;
   const uniqueAntiNodes = new Set<string>();
 
-  const findDiagonalEndPoints = (
+  const findDiagonalPoints = (
     loc1: {row: number, col: number}, 
-    loc2: {row: number, col: number},
-    gridWidth: number,
-    gridHeight: number
+    loc2: {row: number, col: number}
   ) => {
     const dx = loc2.row - loc1.row;
     const dy = loc2.col - loc1.col;
@@ -44,15 +40,14 @@ export const partOneShout = async (input = [] as string[]) => {
   };
 
   for (const item of Object.values(nodeMap)) {
-    for (let i = 0; i < item.nodeLocations.length; i++) {
-      for (let j = i + 1; j < item.nodeLocations.length; j++) {
-        const location1 = item.nodeLocations[i];
-        const location2 = item.nodeLocations[j];
+    for (let i = 0; i < item.length; i++) {
+      for (let j = i + 1; j < item.length; j++) {
+        const location1 = item[i];
+        const location2 = item[j];
 
-        const endPoints = findDiagonalEndPoints(location1, location2, gridWidth, gridHeight);
+        const endPoints = findDiagonalPoints(location1, location2);
 
         endPoints.forEach(end => {
-          item.antiNodeLocations.push(end);
           uniqueAntiNodes.add(`${end.row},${end.col}`);
           if (visualGrid[end.col][end.row] === '.') visualGrid[end.col][end.row] = '#';
         });
