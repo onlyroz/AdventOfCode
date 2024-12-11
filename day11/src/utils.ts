@@ -71,3 +71,15 @@ export function min(arr: number[]) {
 export function max(arr: number[]) {
   return arr.reduce((acc, cur) => (cur > acc ? cur : acc));
 }
+
+// Helper function to check if a number has even digits
+export function hasEvenDigits(num: bigint): boolean {
+  return num.toString().length % 2 === 0;
+}
+
+// Helper function to split a number into left and right halves
+export function splitNumber(num: bigint): [string, string] {
+  const str = num.toString();
+  const mid = Math.floor(str.length / 2);
+  return [str.slice(0, mid), str.slice(mid)];
+}
