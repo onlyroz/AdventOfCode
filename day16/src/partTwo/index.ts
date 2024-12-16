@@ -7,16 +7,12 @@ export const partTwoShout = async (input = [] as string[]) => {
   const startTime = performance.now();
   const map = input.map((line) => line.split(""));
 
-  map.forEach((line) => {
-    console.log(line.join(""));
-  });
-
   type NodeItem = {
     row: number;
     col: number;
     direction: number[];
     points: number;
-    path?: string[][];
+    moves?: [number, number][];
   }
 
   const directions = [
@@ -30,7 +26,7 @@ export const partTwoShout = async (input = [] as string[]) => {
     positions: Heap<NodeItem>,
     node: NodeItem,
     direction: number[]
-  ): void => {
+  ): void => {    
     const [currDx, currDy] = node.direction;
     const [dx, dy] = direction;
     const nextRow = node.row + dx;
@@ -49,22 +45,12 @@ export const partTwoShout = async (input = [] as string[]) => {
     // Going forward is 1 point, turning is 1000 points
     const points = dx === currDx && dy === currDy ? 1 : 1001;
 
-    // Create a copy of the current path
-    const newPath = node.path ? 
-      node.path.map(row => [...row]) : 
-      map.map(row => [...row]);
-
-    // Mark the path with a direction indicator
-    const marker = dx === 0 ? (dy > 0 ? '>' : '<') : 
-                  (dx > 0 ? 'v' : '^');
-    newPath[nextRow][nextCol] = marker;
-
     positions.push({ 
       row: nextRow, 
       col: nextCol, 
       direction: direction,
       points: node.points + points,
-      path: newPath
+      moves: node.moves ? [...node.moves, [nextRow, nextCol]] : [[nextRow, nextCol]]
     });
   }
 
@@ -75,7 +61,7 @@ export const partTwoShout = async (input = [] as string[]) => {
         col: 1, 
         direction: [0, 1], 
         points: 0,
-        path: map.map(row => [...row])
+        moves: []
     });
     
     // Instead of a visited set, keep track of best scores for each position+direction
@@ -97,14 +83,13 @@ export const partTwoShout = async (input = [] as string[]) => {
         // Update the best score for this position+direction
         bestScores.set(key, node.points);
 
+        // If we've reached the end, check if it's a new minimum path
         if (map[node.row][node.col] === "E") {
-            if (node.points <= minScore) {
-                if (node.points < minScore) {
-                    minScore = node.points;
-                    allPaths.length = 0;
-                }
-                allPaths.push(node);
+            if (node.points < minScore) {
+                minScore = node.points;
+                allPaths.length = 0;
             }
+            allPaths.push(node);
             continue;
         }
 
@@ -119,13 +104,15 @@ export const partTwoShout = async (input = [] as string[]) => {
 
   // Collect all tiles that are part of any minimum path
   const minPathTiles = new Set<string>();
+
+  // Explicitly add start and end positions
+  minPathTiles.add(`${map.length - 2}|1`);  // Start position
+  minPathTiles.add(`1|${map[0].length - 2}`);  // End position
+
+  // Add all other path tiles
   allPaths.forEach(path => {
-    path.path?.forEach((row, r) => {
-        row.forEach((cell, c) => {
-            if (cell !== '#' && cell !== '.') {
-                minPathTiles.add(`${r}|${c}`);
-            }
-        });
+    path.moves?.forEach(([r, c]) => {
+        minPathTiles.add(`${r}|${c}`);
     });
   });
 
@@ -145,5 +132,5 @@ export const partTwoShout = async (input = [] as string[]) => {
   visualizeMinPaths.forEach(row => console.log(row.join('')));
   
   const endTime = performance.now();
-  shout(`Time taken: ${((endTime - startTime)/1000).toFixed(3)} s`);
+  shout(`Time taken: ${((endTime - startTime)/1000).toFixed(3)} s`); 
 };
