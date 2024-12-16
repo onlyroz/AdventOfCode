@@ -29,6 +29,7 @@
     "collect.js": "^4.29.3",
     "concurrently": "^6.2.1",
     "lodash": "^4.17.20",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "heap-js": "^2.3.0"
   }
 }
