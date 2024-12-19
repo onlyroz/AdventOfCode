@@ -8,33 +8,28 @@ export const partOneShout = async (input = [] as string[]) => {
   const patterns = input.slice(2);
   const memo = new Map<string, boolean>();
 
-  const process = (pattern: string, towels: string[]) => {
-    if (pattern.length === 0)
-      return { cont: false, isPossible: true };
+  const process = (pattern: string, towels: string[]): boolean => {
+    if (pattern.length === 0) return true;
 
-    if (memo.has(pattern))
-      return { cont: false, isPossible: memo.get(pattern)! };
+    if (memo.has(pattern)) return memo.get(pattern)!;
 
     const matchedTowels = towels.filter(towel => pattern.startsWith(towel));
     if (matchedTowels.length === 0) {
       memo.set(pattern, false);
-      return { cont: false, isPossible: false };
+      return false;
     }
 
-    let anyPossible = false;
-    matchedTowels.forEach(matchedTowel => {
+    const anyPossible = matchedTowels.reduce((acc, matchedTowel) => {
       const newPattern = pattern.slice(matchedTowel.length);
-      const { isPossible } = process(newPattern, towels);
-      if (isPossible) anyPossible = true;
-    });
+      return acc || process(newPattern, towels);
+    }, false);
 
     memo.set(pattern, anyPossible);
-    return { cont: !anyPossible, isPossible: anyPossible };
+    return anyPossible;
   };
 
   const numPossible = patterns.reduce((count, pattern) => {
-    const { isPossible } = process(pattern, towels);
-    return isPossible ? count + 1 : count;
+    return process(pattern, towels) ? count + 1 : count;
   }, 0);
 
   shout(`numPossible: ${numPossible}`);
