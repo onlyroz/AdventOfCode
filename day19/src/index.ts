@@ -6,8 +6,8 @@ async function main() {
   partOneShout(await readTestFile());
   partOneShout(await readFile());
 
-  partTwoShout(await readTestFile());
-  partTwoShout(await readFile());
+//  partTwoShout(await readTestFile());
+//  partTwoShout(await readFile());
 }
 
 main();
