@@ -3,8 +3,6 @@ import { shout } from "../utils";
 export const partTwoShout = async (input = [] as string[]) => {
   shout("Hello from Part Two!");
 
-  const codes = input.map((line) => line.split(''));
-
   const pad1map = {
     '0,0': '',
     '0,1': '^<',
@@ -159,42 +157,49 @@ export const partTwoShout = async (input = [] as string[]) => {
   type Pad1MapKey = keyof typeof pad1map;
   type Pad2MapKey = keyof typeof pad2map;
 
-  const processSequence = (sequence: string, map: Record<string, string>) => {
-    let current = 'A';
-    let result: string[] = [];
+  // Add memoization cache
+  const memoCache = new Map<string, Map<number, bigint>>();
 
-    for (let i = 0; i < sequence.length; i++) {
-      const item = sequence[i];
-      const mapKey = `${current},${item}` as Pad1MapKey | Pad2MapKey;
-      const mapValue = map[mapKey];
-      if (mapValue === undefined) {
-        throw new Error(`Undefined mapping for ${mapKey}`);
-      }
-      result.push(mapValue + 'A');
-      current = item;
-    } 
+  // Track counts of sequence lengths instead of actual sequences
+  const processSequenceRecursive = (
+    sequence: string, 
+    robotNumber: number,
+  ): Map<number, bigint> => {
+    if (robotNumber > 26) return new Map([[sequence.length, 1n]]);
 
-    return result.join('');
+    const cacheKey = `${sequence}-${robotNumber}`;
+    if (memoCache.has(cacheKey)) return memoCache.get(cacheKey)!;
+
+    const nextLengthCounts = sequence.split('').reduce((acc, item, i) => {
+      // Get current sequence and process it
+      const current = i === 0 ? 'A' : sequence[i - 1];
+      const mapKey = `${current},${item}`;
+      const mapValue = robotNumber === 1
+        ? pad1map[mapKey as Pad1MapKey] 
+        : pad2map[mapKey as Pad2MapKey];
+      
+      // Process this sequence through next robot
+      const nextCounts = processSequenceRecursive(mapValue + 'A', robotNumber + 1);
+      
+      // Add its counts to our accumulator
+      nextCounts.forEach((nextCount, nextLength) => 
+        acc.set(nextLength, (acc.get(nextLength) || 0n) + nextCount));
+      
+      return acc;
+    }, new Map<number, bigint>());
+
+    memoCache.set(cacheKey, nextLengthCounts);
+    return nextLengthCounts;
   };
 
-  let result = BigInt(0);
-  codes.forEach((code) => {
-    let numCode = code.join('').replaceAll('A', '');
-    if (numCode.startsWith('0')) {
-      numCode = numCode.slice(1);
-    }
-
-    // Process for robot 1 using pad1map
-    let seqRobot = processSequence(code.join(''), pad1map);
-
-    // Process for robots 2 onwards using pad2map
-    for (let robotNumber = 2; robotNumber <= 3; robotNumber++) {
-      seqRobot = processSequence(seqRobot, pad2map);
-    }
-
-    const length = BigInt(seqRobot.length);
-    result += BigInt(numCode) * length;
-  });
+  const result = input.reduce((acc, code) => {
+    const numCode = code.replace(/^0*|A/g, '');
+    const lengthCounts = processSequenceRecursive(code, 1);
+    
+    return acc + Array.from(lengthCounts, ([length, count]) => 
+      BigInt(numCode) * BigInt(length) * count
+    ).reduce((a, b) => a + b, 0n);
+  }, 0n);
 
   shout(`result: ${result.toString()}`);
 }; 
