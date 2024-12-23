@@ -154,13 +154,8 @@ export const partTwoShout = async (input = [] as string[]) => {
     '>,>': '',
   }; 
 
-  type Pad1MapKey = keyof typeof pad1map;
-  type Pad2MapKey = keyof typeof pad2map;
-
-  // Add memoization cache
   const memoCache = new Map<string, Map<number, bigint>>();
 
-  // Track counts of sequence lengths instead of actual sequences
   const processSequenceRecursive = (
     sequence: string, 
     robotNumber: number,
@@ -170,20 +165,14 @@ export const partTwoShout = async (input = [] as string[]) => {
     const cacheKey = `${sequence}-${robotNumber}`;
     if (memoCache.has(cacheKey)) return memoCache.get(cacheKey)!;
 
+    const map = robotNumber === 1 ? pad1map : pad2map;
     const nextLengthCounts = sequence.split('').reduce((acc, item, i) => {
-      // Get current sequence and process it
-      const current = i === 0 ? 'A' : sequence[i - 1];
-      const mapKey = `${current},${item}`;
-      const mapValue = robotNumber === 1
-        ? pad1map[mapKey as Pad1MapKey] 
-        : pad2map[mapKey as Pad2MapKey];
+      const mapKey = `${i === 0 ? 'A' : sequence[i - 1]},${item}`;
+      const nextCounts = processSequenceRecursive(map[mapKey as keyof typeof map] + 'A', robotNumber + 1);
       
-      // Process this sequence through next robot
-      const nextCounts = processSequenceRecursive(mapValue + 'A', robotNumber + 1);
-      
-      // Add its counts to our accumulator
-      nextCounts.forEach((nextCount, nextLength) => 
-        acc.set(nextLength, (acc.get(nextLength) || 0n) + nextCount));
+      nextCounts.forEach((count, length) => 
+        acc.set(length, (acc.get(length) || 0n) + count)
+      );
       
       return acc;
     }, new Map<number, bigint>());
@@ -196,9 +185,11 @@ export const partTwoShout = async (input = [] as string[]) => {
     const numCode = code.replace(/^0*|A/g, '');
     const lengthCounts = processSequenceRecursive(code, 1);
     
-    return acc + Array.from(lengthCounts, ([length, count]) => 
-      BigInt(numCode) * BigInt(length) * count
-    ).reduce((a, b) => a + b, 0n);
+    let total = 0n;
+    lengthCounts.forEach((count, length) => 
+      total += BigInt(numCode) * BigInt(length) * count
+    );
+    return acc + total;
   }, 0n);
 
   shout(`result: ${result.toString()}`);
